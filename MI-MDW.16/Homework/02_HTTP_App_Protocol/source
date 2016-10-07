@@ -1,0 +1,98 @@
+telnet 1-dot-mi-mdw-1071.appspot.com 80
+Trying 216.58.209.177...
+Connected to 1-dot-mi-mdw-1071.appspot.com.
+Escape character is '^]'.
+GET http://1-dot-mi-mdw-1071.appspot.com/httpTelnet1 HTTP/1.0
+User-Agent: fit-telnet
+Accept: text/html
+Accept-Language: en-US
+Accept-Charset: UTF-8
+
+HTTP/1.0 200 OK
+Content-Type: text/html; charset=utf-8
+X-Cloud-Trace-Context: 9c486b085e598088c2480b5cb08ff047;o=1
+Date: Thu, 06 Oct 2016 19:41:25 GMT
+Server: Google Frontend
+Content-Length: 3
+
+OK
+Connection closed by foreign host.
+
+telnet 1-dot-mi-mdw-1071.appspot.com 80
+Trying 172.217.16.113...
+Connected to 1-dot-mi-mdw-1071.appspot.com.
+Escape character is '^]'.
+POST http://1-dot-mi-mdw-1071.appspot.com/httpTelnet2 HTTP/1.1
+User-Agent: fit-telnet
+Referer: mi-mdw
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 8
+
+data=fit
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+X-Cloud-Trace-Context: 328db7b5c0a643f7f4bd0f3d880b463d;o=1
+Date: Fri, 07 Oct 2016 07:40:41 GMT
+Server: Google Frontend
+Content-Length: 3
+
+OK
+
+curl http://1-dot-mi-mdw-1071.appspot.com/protocol
+<html>
+<head>
+<title>Protocol</title>
+</head>
+<body>
+<h1>Protocol</h1>
+<p>Your next page is <a href="/protocol/welcome">/protocol/welcome</a></p>
+<pre>curl http://1-dot-mi-mdw-1071.appspot.com:80/protocol/welcome</pre>
+<p><a href="http://curl.haxx.se/docs/httpscripting.html">Help</a></p>
+</body>
+</html>
+
+curl http://1-dot-mi-mdw-1071.appspot.com/protocol/welcome
+OK
+Your next page is /protocol/get
+send GET parameter "name" with value "bskendig"
+set Header "Accept" to "text/plain"
+
+curl -H "Accept: text/plain" http://1-dot-mi-mdw-1071.appspot.com/protocol/welcome?name=bskendig
+OK
+Your next page is /protocol/get
+send GET parameter "name" with value "delete"
+set Header "Accept" to "text/plain"
+
+curl -H "Accept: text/plain" http://1-dot-mi-mdw-1071.appspot.com/protocol/get?name=delete
+OK
+Your next page is /protocol/post
+send POST parameter "name" with value "circuits"
+and set Header "Accept" is "text/plain"
+and set Header "Accept-Language" is "en-US"
+
+curl -H "Accept: text/plain" -H "Accept-Language: en-US" -d "name=circuits" http://1-dot-mi-mdw-1071.appspot.com/protocol/post
+OK
+Your next page is /protocol/referer
+change referer to value "witnessed"
+set Header "Accept" is "text/html"
+
+curl -H "Accept: text/html" -H "Referer: witnessed" http://1-dot-mi-mdw-1071.appspot.com/protocol/referer
+OK
+Your next page is /protocol/useragent
+and change User-Agent to value "etc"
+and set Header "Accept-Language" is "en-US"
+
+curl -H "Accept-Language: en-US" -H "User-Agent: etc" http://1-dot-mi-mdw-1071.appspot.com/protocol/useragent
+OK
+Your next page is /protocol/cookie
+send cookie called "name" with value "determination"
+
+curl --cookie "name=determination" http://1-dot-mi-mdw-1071.appspot.com/protocol/cookie
+OK
+Your next page is /protocol/auth
+authenticate by "besides:insulting"
+set Header "Accept" is "text/html"
+
+curl -H "Accept: text/html" --user "besides:insulting" http://1-dot-mi-mdw-1071.appspot.com/protocol/auth
+OK
+Your final result is: characters
