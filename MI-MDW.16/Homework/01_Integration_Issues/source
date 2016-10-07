@@ -1,0 +1,56 @@
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import org.json.simple.JSONObject;
+ 
+public class ToJson {
+ 
+    public static void main( String[] Args ) throws Exception {
+        // Read file by lines
+        try(BufferedReader bufferedReader = new BufferedReader( new FileReader( new File("input.txt")))) {
+ 
+            String line;
+            boolean readingData = false;
+            JSONObject JSON = new JSONObject();
+ 
+            while((line = bufferedReader.readLine()) != null ){
+                // When get line with ===, we start to read variables and their values
+                if ( line.equals("===") ){
+                    // If we are not reading data section,
+                    readingData = readingData?false:true;
+                    continue;
+                }
+                if ( readingData ){
+                    try {
+                        String[] tokens = line.split( ":" );
+                        String property = tokens[0].trim();
+                        String value = tokens[1].trim().replace("\"", "");
+                        if ( property.equals("person") || property.equals("Person") ){
+                            JSONObject person = new JSONObject();
+                            String[] nameParts = value.split(" ");
+                            String name = nameParts[0];
+                            String surname = nameParts[1];
+                            person.put( "name", name);
+                            person.put( "surname", surname);
+                            JSON.put("person", person);
+                        }
+                        else {
+                            JSON.put(property, value);
+                        }
+ 
+                    }
+                    catch ( Exception ex ){
+                        System.out.println( ex.toString() );
+                        System.out.println( "Invalid line format.");
+                    }
+                }
+            }
+            System.out.println( JSON.toJSONString() );
+        }
+        catch( IOException ex ) {
+            System.out.println( ex.toString() );
+            System.out.println( "Problem with file.");
+        }
+ 
+   } 
