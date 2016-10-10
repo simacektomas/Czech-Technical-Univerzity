@@ -106,6 +106,7 @@ void KnapsackProblem::bruteForce( int depth, bool * permutation ){
 KnapsackSolution KnapsackProblem::solveBruteForce(){
 	int depth = 0;
 	bool * permutation = new bool[m_count];
+	auto start = std::chrono::high_resolution_clock::now();
 	// 1_0_0_0*	
 	permutation[depth] = true;
 	bruteForce( depth+1, permutation );
@@ -113,8 +114,11 @@ KnapsackSolution KnapsackProblem::solveBruteForce(){
 	permutation[depth] = false;
 	bruteForce( depth+1, permutation );
 	
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> CpuTime = end-start;
+	
 	cout << "BRUTEFORCE" << endl;
-	cout << "weight: " << m_maxWeight << " price:" << m_maxPrice << endl;
+	cout << "weight: " << m_maxWeight << " price:" << m_maxPrice << " time: " << CpuTime.count() << endl;
 	delete [] permutation;
 }
 /*----------------------------------------------------------------------------------------------------------*/
