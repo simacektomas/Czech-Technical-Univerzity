@@ -77,7 +77,7 @@ int heuristicCompare( const void * a, const void * b ){
 	const KnapsackItem * item1 = *(const KnapsackItem **) a;
 	const KnapsackItem * item2 = *(const KnapsackItem **) b;
 
-	return ( item1->m_ratio - item2->m_ratio );
+	return ( item2->m_ratio - item1->m_ratio );
 }
 
 int KnapsackProblem::solveHeuristic(){
@@ -89,6 +89,17 @@ int KnapsackProblem::solveHeuristic(){
 	qsort( heuristic, m_count, sizeof(KnapsackItem*), heuristicCompare );
 	for ( int i = 0; i < m_count; ++i ){ heuristic[i]->print(); cout << "|"; };
 	cout << endl;
+
+	int currentWeight = 0;
+	int overallPrice = 0;
+	for ( int i = 0; i < m_count ; i++ ){
+		int itemWeight = heuristic[i]->m_weight; 
+		int itemPrice = heuristic[i]->m_price;
+		if ( currentWeight + itemWeight > m_knapsack ) break; 
+		currentWeight += itemWeight;
+		overallPrice += itemPrice;
+	}
+	cout << "id: " << m_id << endl << "maxweight: " << m_knapsack << " weight: " << currentWeight << " price: " << overallPrice << endl;
 
 	delete [] heuristic;
 
