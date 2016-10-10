@@ -2,8 +2,18 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <chrono>
 
 using namespace std;
+/*----------------------------------------------------------------------------------------------------------*/
+struct KnapsackSolution {
+	KnapsackSolution();
+	int m_totalPrice;
+	int m_totalWeight;
+	int m_count;
+	bool * m_solution;
+	bool m_ref;
+};
 /*----------------------------------------------------------------------------------------------------------*/
 struct KnapsackItem {
 	public:
@@ -27,18 +37,17 @@ class KnapsackProblem {
 			delete [] m_items;
 
 		};
-		int solveBruteForce();
-		int solveHeuristic();
-		void showParameters(){
-			cout << "id: " << m_id << endl;	
-			cout << "count: " << m_count << endl;	
-			cout << "knapsack: " << m_knapsack << endl;	
-		};
+		void bruteForce( int depth, bool * permutation );
+		KnapsackSolution solveBruteForce();
+
+		KnapsackSolution solveHeuristic();
 	private:
 		int m_id;
 		int m_count;
 		int m_knapsack;
 		KnapsackItem ** m_items;
+		int m_maxPrice;
+		int m_maxWeight;
 
 };
 /*----------------------------------------------------------------------------------------------------------*/
@@ -61,15 +70,52 @@ KnapsackProblem::KnapsackProblem( string instance ){
 		iss >> weight;
 		iss >> price;
 		m_items[i] = new KnapsackItem( std::stoi(weight), std::stoi(price) );
-		m_items[i]->print();
-		cout << " ";
-
 	}
-	cout << endl;
+	m_maxPrice = 0;
+	m_maxWeight = 0;
 }
 /*----------------------------------------------------------------------------------------------------------*/
-int KnapsackProblem::solveBruteForce(){
+void KnapsackProblem::bruteForce( int depth, bool * permutation ){
+	// permutation is completed
+	if ( depth >= m_count ){
+		int price = 0;
+		int weight = 0;
+		for ( int i = 0; i < m_count; i++ ){
+			if ( permutation[i] ){
+				price += m_items[i]->m_price;
+				weight += m_items[i]->m_weight;
+			}
+		}
+		
+		if ( price > m_maxPrice && weight <= m_knapsack ){
+			
+			m_maxPrice = price;
+			m_maxWeight = weight;
+		}
+		return;
+	}
+//	cout << depth << endl;
+	permutation[depth] = true;
+	bruteForce( depth+1, permutation ); 
+
+	permutation[depth] = false;
+	bruteForce( depth+1, permutation );
+
+}
+/*----------------------------------------------------------------------------------------------------------*/
+KnapsackSolution KnapsackProblem::solveBruteForce(){
 	int depth = 0;
+	bool * permutation = new bool[m_count];
+	// 1_0_0_0*	
+	permutation[depth] = true;
+	bruteForce( depth+1, permutation );
+	// 0_0_0_0*
+	permutation[depth] = false;
+	bruteForce( depth+1, permutation );
+	
+	cout << "BRUTEFORCE" << endl;
+	cout << "weight: " << m_maxWeight << " price:" << m_maxPrice << endl;
+	delete [] permutation;
 }
 /*----------------------------------------------------------------------------------------------------------*/
 int heuristicCompare( const void * a, const void * b ){
@@ -79,17 +125,18 @@ int heuristicCompare( const void * a, const void * b ){
 	return ( item2->m_ratio - item1->m_ratio );
 }
 /*----------------------------------------------------------------------------------------------------------*/
-int KnapsackProblem::solveHeuristic(){
+KnapsackSolution KnapsackProblem::solveHeuristic(){
 
 	KnapsackItem ** heuristic = new KnapsackItem*[m_count];
 	for ( int i = 0; i < m_count; ++i ) heuristic[i] = m_items[i];
 	//Sort the array by the heuristic ratio
 	qsort( heuristic, m_count, sizeof(KnapsackItem*), heuristicCompare );
-	for ( int i = 0; i < m_count; ++i ){ heuristic[i]->print(); cout << "|"; };
-	cout << endl;
 
 	int currentWeight = 0;
 	int overallPrice = 0;
+	// Prepare array for heuristic solution
+	// bool * solution = new bool[m_count];
+
 	for ( int i = 0; i < m_count ; i++ ){
 		int itemWeight = heuristic[i]->m_weight; 
 		int itemPrice = heuristic[i]->m_price;
@@ -97,7 +144,7 @@ int KnapsackProblem::solveHeuristic(){
 		currentWeight += itemWeight;
 		overallPrice += itemPrice;
 	}
-	cout << "id: " << m_id << endl << "maxweight: " << m_knapsack << " weight: " << currentWeight << " price: " << overallPrice << endl;
+	cout << "id: " << m_id << " knapsack: " << m_knapsack << endl << "HEURISTIC" << endl << "weight: " << currentWeight << " price: " << overallPrice << endl;
 
 	delete [] heuristic;
 
@@ -115,6 +162,7 @@ int main ( int args, char ** argv ){
 			
 			KnapsackProblem knapsackInstance( instance );	
 			knapsackInstance.solveHeuristic();
+			knapsackInstance.solveBruteForce();
 		}
 
 		dataFile.close();
