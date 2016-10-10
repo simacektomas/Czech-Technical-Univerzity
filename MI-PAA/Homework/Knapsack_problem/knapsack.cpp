@@ -4,7 +4,7 @@
 #include <sstream>
 
 using namespace std;
-
+/*----------------------------------------------------------------------------------------------------------*/
 struct KnapsackItem {
 	public:
 		KnapsackItem();
@@ -16,8 +16,7 @@ struct KnapsackItem {
 		int m_price;
 		double m_ratio; 
 };
-
-
+/*----------------------------------------------------------------------------------------------------------*/
 class KnapsackProblem {
 	public:
 		KnapsackProblem( string instance );
@@ -42,7 +41,7 @@ class KnapsackProblem {
 		KnapsackItem ** m_items;
 
 };
-
+/*----------------------------------------------------------------------------------------------------------*/
 KnapsackProblem::KnapsackProblem( string instance ){
 	
 	istringstream iss( instance );
@@ -68,23 +67,22 @@ KnapsackProblem::KnapsackProblem( string instance ){
 	}
 	cout << endl;
 }
-
+/*----------------------------------------------------------------------------------------------------------*/
 int KnapsackProblem::solveBruteForce(){
-
+	int depth = 0;
 }
-
+/*----------------------------------------------------------------------------------------------------------*/
 int heuristicCompare( const void * a, const void * b ){
 	const KnapsackItem * item1 = *(const KnapsackItem **) a;
 	const KnapsackItem * item2 = *(const KnapsackItem **) b;
 
 	return ( item2->m_ratio - item1->m_ratio );
 }
-
+/*----------------------------------------------------------------------------------------------------------*/
 int KnapsackProblem::solveHeuristic(){
 
 	KnapsackItem ** heuristic = new KnapsackItem*[m_count];
 	for ( int i = 0; i < m_count; ++i ) heuristic[i] = m_items[i];
-
 	//Sort the array by the heuristic ratio
 	qsort( heuristic, m_count, sizeof(KnapsackItem*), heuristicCompare );
 	for ( int i = 0; i < m_count; ++i ){ heuristic[i]->print(); cout << "|"; };
@@ -104,7 +102,7 @@ int KnapsackProblem::solveHeuristic(){
 	delete [] heuristic;
 
 }
-
+/*----------------------------------------------------------------------------------------------------------*/
 int main ( int args, char ** argv ){
 	
 	if ( args != 2 ) return 1;
