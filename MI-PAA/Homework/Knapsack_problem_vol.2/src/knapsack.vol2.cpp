@@ -20,6 +20,18 @@ class KnapsackItem {
 			return stream << '[' << item.m_weight << ", " << item.m_price << ']';
 		}
 		/*---------------------------------------------------------------------------------*/
+		int getWeight() { return m_weight; }
+		/*---------------------------------------------------------------------------------*/
+		int getPrice() { return m_price; }
+		/*---------------------------------------------------------------------------------*/
+		double getRatio() { return m_ratio; }
+		/*---------------------------------------------------------------------------------*/
+		void setWeight(int weight) { m_weight = weight; }
+		/*---------------------------------------------------------------------------------*/
+		void setPrice(int price) { m_price = price; }
+		/*---------------------------------------------------------------------------------*/
+		void setRatio(double ratio) { m_ratio = ratio; }
+		/*---------------------------------------------------------------------------------*/
 	private:
 		int m_weight;
 		int m_price;
@@ -28,9 +40,33 @@ class KnapsackItem {
 /*-------------------------------------------------------------------------------------------------*/
 class KnapsackSolution {
 	public:
+		/*---------------------------------------------------------------------------------*/
+		KnapsackSolution(string type, int id, int n)	
+		:m_type(type), m_price(0), m_weight(0), m_id(id), m_n(n) {}
+		/*---------------------------------------------------------------------------------*/
+		int getPrice() { return m_price; }
+		/*---------------------------------------------------------------------------------*/
+		int getWeight() { return m_weight; }
+		/*---------------------------------------------------------------------------------*/
+		int getId() { return m_id; }
+		/*---------------------------------------------------------------------------------*/
+		int getN() { return m_n; }
+		/*---------------------------------------------------------------------------------*/
+		void setPrice(int price) { m_price = price; }
+		/*---------------------------------------------------------------------------------*/
+		void setWeight(int weight) { m_weight = weight; }
+		/*---------------------------------------------------------------------------------*/
+		friend ostream& operator << (ostream& stream, const KnapsackSolution& solution) {
+			stream <<  solution.m_id << ' ' << solution.m_n << ' ' << solution.m_price << endl;
+		}
+		/*---------------------------------------------------------------------------------*/
+		
 	private:
+		string m_type;
 		int m_price;
 		int m_weight;
+		int m_id;
+		int m_n;
 };
 /*-------------------------------------------------------------------------------------------------*/
 class KnapsackInstance {
@@ -77,11 +113,33 @@ class KnapsackInstance {
 		}
 		/*---------------------------------------------------------------------------------*/
 		KnapsackSolution solveBF() {
+			int depth = 0;
+			bool * permutation = new bool[m_n];
+			KnapsackSolution solution("Bruteforce", m_id, m_n);
+			
+			permutation[depth] = true;
+			bf(depth+1, permutation, solution);
 
+			permutation[depth] = false;
+			bf(depth+1, permutation, solution);
+
+			delete [] permutation;
+			return solution;
 		}
 		/*---------------------------------------------------------------------------------*/
 		KnapsackSolution solveBB() {
+			int depth = 0;
+			bool * permutation = new bool[m_n];
+			KnapsackSolution solution("Bound&Branch", m_id, m_n);
 
+			permutation[depth] = true;
+			bf(depth+1, permutation, solution);
+
+			permutation[depth] = false;
+			bf(depth+1, permutation, solution);
+
+			delete [] permutation;
+			return solution;
 		}
 		/*---------------------------------------------------------------------------------*/
 		KnapsackSolution solveDP() {
@@ -93,6 +151,31 @@ class KnapsackInstance {
 		}
 		/*---------------------------------------------------------------------------------*/
 	private:
+		/*---------------------------------------------------------------------------------*/
+		void bf(int depth, bool* permutation, KnapsackSolution& solution) {
+			if(depth >= m_n) {
+				int price = 0, weight = 0;
+				for(int i = 0; i<m_n; ++i) {
+					// if item in knapsack add his price to pool
+					if(permutation[i]) {
+						price += m_items[i]->getPrice();
+						weight += m_items[i]->getWeight();
+					}
+				}
+				// We founded new best solution
+				if (price > solution.getPrice() && weight <= m_capacity) {
+					solution.setPrice(price);
+					solution.setWeight(weight);	
+				}
+				return;
+			}
+			permutation[depth] = true;
+			bf(depth+1, permutation, solution);
+
+			permutation[depth] = false;
+			bf(depth+1, permutation, solution);
+		}
+		/*---------------------------------------------------------------------------------*/
 		int m_id;
 		int m_n;
 		int m_capacity;
@@ -129,6 +212,12 @@ class KnapsackCollection {
 			return stream;
 		}
 		/*---------------------------------------------------------------------------------*/
+		void solveBF() {
+			for(auto const& instance: m_instances) {
+				cout << instance->solveBF();
+				
+			}
+		}
 		/*---------------------------------------------------------------------------------*/
 	private:
 		vector<KnapsackInstance*> m_instances;
@@ -137,10 +226,8 @@ class KnapsackCollection {
 /*-------------------------------------------------------------------------------------------------*/
 /*-------------------------------------------------------------------------------------------------*/
 int main ( int args, char ** argv ) {
-//	cout << "Hello world. Vol2" << endl;	
-	if (args<2) return 1;
-	cout << argv[0] << ' ' << args <<  endl;
-	KnapsackCollection collection( argv[1] );
-	cout << collection;
 
+	if (args<2) return 1;
+	KnapsackCollection collection( argv[1] );
+	collection.solveBF();
 }
