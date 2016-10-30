@@ -52,12 +52,16 @@ class KnapsackSolution {
 		/*---------------------------------------------------------------------------------*/
 		int getN() { return m_n; }
 		/*---------------------------------------------------------------------------------*/
+		std::chrono::duration<double> getTime() { return m_time; }
+		/*---------------------------------------------------------------------------------*/
 		void setPrice(int price) { m_price = price; }
 		/*---------------------------------------------------------------------------------*/
 		void setWeight(int weight) { m_weight = weight; }
 		/*---------------------------------------------------------------------------------*/
+		void setTime(std::chrono::duration<double> time) { m_time = time; }
+		/*---------------------------------------------------------------------------------*/
 		friend ostream& operator << (ostream& stream, const KnapsackSolution& solution) {
-			stream <<  solution.m_id << ' ' << solution.m_n << ' ' << solution.m_price << endl;
+			stream <<  solution.m_id << ' ' << solution.m_n << ' ' << solution.m_price << ' ' << solution.m_time.count() << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
 		
@@ -67,6 +71,7 @@ class KnapsackSolution {
 		int m_weight;
 		int m_id;
 		int m_n;
+		std::chrono::duration<double> m_time;
 };
 /*-------------------------------------------------------------------------------------------------*/
 class KnapsackInstance {
@@ -117,11 +122,16 @@ class KnapsackInstance {
 			bool * permutation = new bool[m_n];
 			KnapsackSolution solution("Bruteforce", m_id, m_n);
 			
+			auto start = std::chrono::high_resolution_clock::now();			
+
 			permutation[depth] = true;
 			bf(depth+1, permutation, solution);
 
 			permutation[depth] = false;
 			bf(depth+1, permutation, solution);
+
+			auto end = std::chrono::high_resolution_clock::now();
+			solution.setTime(end-start);	
 
 			delete [] permutation;
 			return solution;
@@ -132,11 +142,16 @@ class KnapsackInstance {
 			bool * permutation = new bool[m_n];
 			KnapsackSolution solution("Bound&Branch", m_id, m_n);
 
+			auto start = std::chrono::high_resolution_clock::now();			
+
 			permutation[depth] = true;
 			bf(depth+1, permutation, solution);
 
 			permutation[depth] = false;
 			bf(depth+1, permutation, solution);
+
+			auto end = std::chrono::high_resolution_clock::now();
+			solution.setTime(end-start);	
 
 			delete [] permutation;
 			return solution;
@@ -174,6 +189,18 @@ class KnapsackInstance {
 
 			permutation[depth] = false;
 			bf(depth+1, permutation, solution);
+		}
+		/*---------------------------------------------------------------------------------*/
+		void bb(int depth, bool* permutation, KnapsackSolution& solution) {
+
+				
+	
+			permutation[depth] = true;
+			bb(depth+1, permutation, solution);
+
+			permutation[depth] = false;
+			bb(depth+1, permutation, solution);
+			
 		}
 		/*---------------------------------------------------------------------------------*/
 		int m_id;
