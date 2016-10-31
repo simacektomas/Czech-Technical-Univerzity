@@ -138,17 +138,31 @@ class KnapsackInstance {
 		}
 		/*---------------------------------------------------------------------------------*/
 		KnapsackSolution solveBB() {
-			int depth = 0;
+			int depth = 0, priceSum = 0, weightSum = 0, potential = 0;
 			bool * permutation = new bool[m_n];
 			KnapsackSolution solution("Bound&Branch", m_id, m_n);
+			
+			for(int i = 0; i<m_n; ++i) {
+				potential += m_items[i]->getPrice();
+			}
 
 			auto start = std::chrono::high_resolution_clock::now();			
 
 			permutation[depth] = true;
-			bf(depth+1, permutation, solution);
+			bb(depth+1,
+			   potential - m_items[depth]->getPrice(),
+			   priceSum + m_items[depth]->getPrice(),
+			   weightSum + m_items[depth]->getWeight(),
+			   permutation,
+			   solution);
 
 			permutation[depth] = false;
-			bf(depth+1, permutation, solution);
+			bb(depth+1,
+			   potential - m_items[depth]->getPrice(),
+			   priceSum,
+			   weightSum,
+			   permutation,
+			   solution);
 
 			auto end = std::chrono::high_resolution_clock::now();
 			solution.setTime(end-start);	
@@ -191,15 +205,34 @@ class KnapsackInstance {
 			bf(depth+1, permutation, solution);
 		}
 		/*---------------------------------------------------------------------------------*/
-		void bb(int depth, bool* permutation, KnapsackSolution& solution) {
+		void bb(int depth, int potential, int priceSum, int weightSum, bool* permutation, KnapsackSolution& solution) {
+			if(weightSum > m_capacity || (priceSum + potential)< solution.getPrice()) return;
+			
 
+			if(depth >= m_n) {
+				if(priceSum >= solution.getPrice()){
+					solution.setPrice(priceSum);
+					solution.setWeight(weightSum);
+				}
+				return;
+			} 
 				
 	
 			permutation[depth] = true;
-			bb(depth+1, permutation, solution);
+			bb(depth+1,
+			   potential - m_items[depth]->getPrice(),
+			   priceSum + m_items[depth]->getPrice(),
+			   weightSum + m_items[depth]->getWeight(),
+			   permutation,
+			   solution);
 
 			permutation[depth] = false;
-			bb(depth+1, permutation, solution);
+			bb(depth+1,
+			   potential - m_items[depth]->getPrice(),
+			   priceSum,
+			   weightSum,
+			   permutation,
+			   solution);
 			
 		}
 		/*---------------------------------------------------------------------------------*/
