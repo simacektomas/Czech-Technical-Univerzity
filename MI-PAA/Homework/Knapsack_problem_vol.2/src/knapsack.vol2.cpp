@@ -4,6 +4,7 @@
 #include <string>
 #include <chrono>
 #include <vector>
+#include <regex>
 
 using namespace std;
 /*-------------------------------------------------------------------------------------------------*/
@@ -41,6 +42,9 @@ class KnapsackItem {
 class KnapsackSolution {
 	public:
 		/*---------------------------------------------------------------------------------*/
+		KnapsackSolution()
+		:m_type("undef"), m_price(0), m_weight(0), m_id(0), m_n(0){}
+		/*---------------------------------------------------------------------------------*/
 		KnapsackSolution(string type, int id, int n)	
 		:m_type(type), m_price(0), m_weight(0), m_id(id), m_n(n) {}
 		/*---------------------------------------------------------------------------------*/
@@ -61,7 +65,7 @@ class KnapsackSolution {
 		void setTime(std::chrono::duration<double> time) { m_time = time; }
 		/*---------------------------------------------------------------------------------*/
 		friend ostream& operator << (ostream& stream, const KnapsackSolution& solution) {
-			stream <<  solution.m_id << ' ' << solution.m_n << ' ' << solution.m_price << ' ' << solution.m_time.count() << endl;
+			stream <<  solution.m_id << ' ' << solution.m_n << ' ' << solution.m_price << ' ' << solution.m_time.count();
 		}
 		/*---------------------------------------------------------------------------------*/
 		
@@ -171,11 +175,203 @@ class KnapsackInstance {
 			return solution;
 		}
 		/*---------------------------------------------------------------------------------*/
-		KnapsackSolution solveDP() {
+		KnapsackSolution solvePD() {
+			// price decomposition by dynamic programing
+			int sumPrice = 0;
+			
+			KnapsackSolution solution("PriceDecomposition", m_id, m_n);
 
+			for(int i = 0; i<m_n; ++i) {
+				sumPrice += m_items[i]->getPrice();
+			}
+			// we need the first zero column, or the last index
+			// we use sumPrice for allocating and we need that one extra collumn for price zero
+			sumPrice++;
+			// prepare table 
+			int** pmatrix = new int*[m_n];
+			for(int i = 0; i<m_n; ++i) {
+				pmatrix[i] = new int[sumPrice];
+				for(int y = 0; y<sumPrice; ++y){
+					pmatrix[i][y] = -1;
+				}
+			}
+			// now we will use sumPrice as an index so we need to decrement it, cause array of 13 collumn has max index 12
+			sumPrice--;
+
+			auto start = std::chrono::high_resolution_clock::now();
+
+			//init
+			pmatrix[0][0] = 0;
+			// iterate over all items in knapsack
+			for(int i = 0; i<m_n; ++i) {
+				// We process new item
+				int itemPrice = m_items[i]->getPrice();
+				int itemWeight = m_items[i]->getWeight();
+				int offset = i ? 1 : 0 ;
+				//
+				for(int y = sumPrice; y>=0; --y) {
+					// we have value
+					if ( pmatrix[i-offset][y] >= 0 ) {
+						int estWeight = pmatrix[i-offset][y] + itemWeight;
+						if(estWeight <= m_capacity){
+							if(pmatrix[i][y+itemPrice] == -1){
+								pmatrix[i][y+itemPrice] = estWeight;
+							}
+							else {
+								if(pmatrix[i][y+itemPrice] > estWeight) {
+									pmatrix[i][y+itemPrice] = estWeight;
+								}
+							}
+						}
+						pmatrix[i][y] = pmatrix[i-offset][y];
+					}
+				}
+			}
+			//find solution
+			//
+			int y = sumPrice;
+			bool * permutation = new bool[m_n];
+			for(int i = m_n-1; i>=0; --i){
+				if(!i) {
+					if( pmatrix[i][y] == 0 ) permutation[i] = 0;
+					else permutation[i] = 1;
+					break;
+				} 		
+		
+				while(pmatrix[i][y] < 0) y--;
+				
+				if(pmatrix[i][y] == pmatrix[i-1][y]) permutation[i] = 0; 
+				else {
+					permutation[i] = 1;
+					y -= m_items[i]->getPrice();
+				}
+			}
+
+
+			for(int y = sumPrice; y>=0; --y) {
+				if(!(pmatrix[m_n-1][y] < 0)){
+					solution.setPrice(y);
+					solution.setWeight(pmatrix[m_n-1][y]);
+					break;
+				}
+			}
+
+			auto end = std::chrono::high_resolution_clock::now();
+			solution.setTime(end-start);
+			// Delete matrix	
+			for(int i = 0; i<m_n; ++i) {
+				delete [] pmatrix[i];
+			}
+			delete [] pmatrix;
+
+			return solution;
 		}
 		/*---------------------------------------------------------------------------------*/
-		KnapsackSolution solveFPTAS() {
+		KnapsackSolution solveFPTAS( double epsilon ) {
+
+			KnapsackSolution solution("FPTAS", m_id, m_n);
+
+			if(!(epsilon > 0 && epsilon <= 1)) return solution;
+
+			int maxPrice = 0, modSumPrice = 0;
+			double K = 1;
+			// count maximal price in items set
+			for(int i = 0; i<m_n; ++i) {
+				if(m_items[i]->getPrice() > maxPrice) maxPrice = m_items[i]->getPrice();
+			}
+			// count coeficient K = (epsilon*maxPrice)/m_n
+			K = (epsilon*maxPrice)/m_n;
+			if(K<1) K = 1;
+			// p_i' = p_i/K
+			for(int i = 0; i<m_n; ++i) {
+				int price = m_items[i]->getPrice();
+				modSumPrice += price/K;
+			}
+
+
+			modSumPrice++;
+                        // prepare table 
+                        int** pmatrix = new int*[m_n];
+                        for(int i = 0; i<m_n; ++i) {
+                                pmatrix[i] = new int[modSumPrice];
+                                for(int y = 0; y<modSumPrice; ++y){
+                                        pmatrix[i][y] = -1;
+                                }
+                        }
+                        // now we will use sumPrice as an index so we need to decrement it, cause array of 13 collumn has max index 12
+                        modSumPrice--;
+
+			auto start = std::chrono::high_resolution_clock::now();
+			// init 
+			pmatrix[0][0] = 0;
+
+                        for(int i = 0; i<m_n; ++i) {
+                                // We process new item
+                                int itemPrice = (m_items[i]->getPrice())/K;
+                                int itemWeight = m_items[i]->getWeight();
+                                int offset = i ? 1 : 0 ;
+                                //
+                                for(int y = modSumPrice; y>=0; --y) {
+                                        // we have value
+                                        if ( pmatrix[i-offset][y] >= 0 ) {
+                                                int estWeight = pmatrix[i-offset][y] + itemWeight;
+                                                if(estWeight <= m_capacity){
+                                                        if(pmatrix[i][y+itemPrice] == -1){
+                                                                pmatrix[i][y+itemPrice] = estWeight;
+                                                        }
+                                                        else {
+                                                                if(pmatrix[i][y+itemPrice] > estWeight) {
+                                                                        pmatrix[i][y+itemPrice] = estWeight;
+                                                                }
+                                                        }
+                                                }
+                                                pmatrix[i][y] = pmatrix[i-offset][y];
+                                        }
+                                }
+                        }
+                        //find solution
+                        int y = modSumPrice;
+                        bool * permutation = new bool[m_n];
+                        for(int i = m_n-1; i>=0; --i){
+                                if(!i) {
+                                        if( pmatrix[i][y] == 0 ) permutation[i] = 0;
+                                        else permutation[i] = 1;
+                                        break;
+                                }
+
+                                while(pmatrix[i][y] < 0) y--;
+
+                                if(pmatrix[i][y] == pmatrix[i-1][y]) permutation[i] = 0;
+                                else {
+                                        permutation[i] = 1;
+                                        y -= (m_items[i]->getPrice())/K;
+                                }       
+                        }
+
+			int price = 0;
+			int weight = 0;
+		
+			for(int i = 0; i<m_n; ++i) {
+				if(permutation[i]) {
+					price += m_items[i]->getPrice();
+					weight += m_items[i]->getWeight();
+				}
+			}
+			solution.setPrice(price);
+			solution.setWeight(weight);
+
+			auto end = std::chrono::high_resolution_clock::now();
+			solution.setTime(end-start);
+
+
+			// delete matrix
+			for(int i = 0; i<m_n; ++i) {
+				delete [] pmatrix[i];
+			}
+
+			delete [] pmatrix;
+
+			return solution;
 
 		}
 		/*---------------------------------------------------------------------------------*/
@@ -206,9 +402,9 @@ class KnapsackInstance {
 		}
 		/*---------------------------------------------------------------------------------*/
 		void bb(int depth, int potential, int priceSum, int weightSum, bool* permutation, KnapsackSolution& solution) {
+
 			if(weightSum > m_capacity || (priceSum + potential)< solution.getPrice()) return;
 			
-
 			if(depth >= m_n) {
 				if(priceSum >= solution.getPrice()){
 					solution.setPrice(priceSum);
@@ -217,7 +413,6 @@ class KnapsackInstance {
 				return;
 			} 
 				
-	
 			permutation[depth] = true;
 			bb(depth+1,
 			   potential - m_items[depth]->getPrice(),
@@ -245,10 +440,11 @@ class KnapsackInstance {
 class KnapsackCollection {
 	public:
 		/*---------------------------------------------------------------------------------*/
-		KnapsackCollection(string filename) {
+		KnapsackCollection(string filename)
+			:m_filename(filename) {
 			string line;
 			// Open data file, read id, n, capacity and knapsack items
-			ifstream dfile(filename);
+			ifstream dfile(m_filename);
 			if (dfile.is_open()) {
 				while(getline(dfile, line)) {
 					// Construct knapsack instance and remeber it
@@ -256,6 +452,8 @@ class KnapsackCollection {
 					m_instances.push_back(instance);
 				}
 			}
+//			m_solfile = std::regex_replace(m_filename, std::regex("inst"), "sol");
+//			cout << m_solfile << endl;
 
 		}
 		/*---------------------------------------------------------------------------------*/
@@ -279,7 +477,48 @@ class KnapsackCollection {
 			}
 		}
 		/*---------------------------------------------------------------------------------*/
+		void solveBB() {
+			int count = 0, n = 0;
+			double averageTime = 0;			
+			KnapsackSolution solution;
+			for(auto const& instance: m_instances) {
+				solution = instance->solveBB();
+				averageTime += solution.getTime().count();	
+				count ++;
+			}
+			averageTime /= (double) count;
+			cout << solution.getN() << " " << count << " " << averageTime << endl;
+		}
+		/*---------------------------------------------------------------------------------*/
+		void solvePD() {
+			int count = 0, n = 0;
+			double averageTime = 0;
+			KnapsackSolution solution;
+			for(auto const& instance: m_instances) {				
+				solution = instance->solvePD();
+				averageTime += solution.getTime().count();
+				count ++;
+			}
+			averageTime /= (double) count;
+			cout << solution.getN() << " " << count << " " << averageTime << endl;
+		}
+		/*---------------------------------------------------------------------------------*/
+		void solveFPTAS() {
+			int count = 0, n = 0;
+			double averageTime = 0;
+			KnapsackSolution solution;
+			for(auto const& instance: m_instances) {
+				solution = instance->solveFPTAS(0.01);
+				averageTime += solution.getTime().count();
+				count ++;
+			}
+			averageTime /= (double) count;
+			cout << solution.getN() << " " << count << " " << averageTime << endl;
+		}
+		/*---------------------------------------------------------------------------------*/
 	private:
+		string m_filename;
+		string m_solfile;
 		vector<KnapsackInstance*> m_instances;
 	
 };
@@ -287,7 +526,28 @@ class KnapsackCollection {
 /*-------------------------------------------------------------------------------------------------*/
 int main ( int args, char ** argv ) {
 
-	if (args<2) return 1;
-	KnapsackCollection collection( argv[1] );
-	collection.solveBF();
+	if (args<3) return 1;
+	KnapsackCollection collection( argv[2] );
+
+	string opt = argv[1];
+	if( opt == "BF") {
+		collection.solveBF();
+	}
+	else if ( opt == "BB" ) {
+		collection.solveBB();
+	}
+	else if ( opt == "PD" ) {
+		collection.solvePD();
+	}
+	else if ( opt == "FPTAS") {
+		collection.solveFPTAS();
+	}
+	else {
+
+		cout << "Invalid first argument" << endl;
+		cout << "Usage: " << argv[0] << " [BF|BB|PD|FPTAS] <filename> " << endl;
+		return 2;
+	}
+	return 0;
 }
+/*-------------------------------------------------------------------------------------------------*/
