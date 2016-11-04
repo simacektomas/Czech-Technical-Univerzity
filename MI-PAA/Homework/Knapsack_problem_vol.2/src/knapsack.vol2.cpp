@@ -452,9 +452,17 @@ class KnapsackCollection {
 					m_instances.push_back(instance);
 				}
 			}
-//			m_solfile = std::regex_replace(m_filename, std::regex("inst"), "sol");
-//			cout << m_solfile << endl;
+			size_t index = 0;
+			m_solfile = m_filename;
+			string search = "inst", replace = "sol";
+			// find solution file name
+			for(size_t pos = 0; ; pos+= replace.length()) {
+				pos = m_solfile.find(search, pos);
+				if(pos == string::npos) break;
 
+				m_solfile.erase(pos, search.length());
+				m_solfile.insert(pos, replace);
+			}
 		}
 		/*---------------------------------------------------------------------------------*/
 		~KnapsackCollection() {
@@ -471,10 +479,16 @@ class KnapsackCollection {
 		}
 		/*---------------------------------------------------------------------------------*/
 		void solveBF() {
+			int count = 0, n = 0;
+			double averageTime = 0;
+			KnapsackSolution solution;
 			for(auto const& instance: m_instances) {
-				cout << instance->solveBF();
-				
+				solution = instance->solveBF();
+				averageTime += solution.getTime().count();
+				count ++;
 			}
+			averageTime /= (double) count;
+			cout << solution.getN() << " " << count << " " << averageTime << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
 		void solveBB() {
@@ -508,12 +522,30 @@ class KnapsackCollection {
 			double averageTime = 0;
 			KnapsackSolution solution;
 			for(auto const& instance: m_instances) {
-				solution = instance->solveFPTAS(0.01);
+				solution = instance->solveFPTAS(0.5);
 				averageTime += solution.getTime().count();
 				count ++;
 			}
 			averageTime /= (double) count;
 			cout << solution.getN() << " " << count << " " << averageTime << endl;
+		}
+		/*---------------------------------------------------------------------------------*/
+		void solveFPTASerr() {
+			int count = 0, n = 0;
+			double averageError = 0, maxError = 0, relError = 0;
+			KnapsackSolution pd, fptas;
+			for(auto const& instance: m_instances) {
+				pd = instance->solvePD();
+				fptas = instance->solveFPTAS(0.01);				
+				// rel error
+				relError = ((double)(pd.getPrice()-fptas.getPrice()))/(double)pd.getPrice();
+				if(relError > maxError) maxError = relError;
+				averageError += relError;
+				count++;
+
+			}
+			averageError /= (double)count;
+			cout << pd.getN() << ' ' << count << ' ' << averageError << ' ' << maxError << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
 	private:
@@ -541,6 +573,9 @@ int main ( int args, char ** argv ) {
 	}
 	else if ( opt == "FPTAS") {
 		collection.solveFPTAS();
+	}
+	else if ( opt == "ERR") {
+		collection.solveFPTASerr();
 	}
 	else {
 
