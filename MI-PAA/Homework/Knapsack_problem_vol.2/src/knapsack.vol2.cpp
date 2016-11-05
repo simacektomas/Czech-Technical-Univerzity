@@ -517,12 +517,12 @@ class KnapsackCollection {
 			cout << solution.getN() << " " << count << " " << averageTime << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
-		void solveFPTAS() {
+		void solveFPTAS( double epsilon ) {
 			int count = 0, n = 0;
 			double averageTime = 0;
 			KnapsackSolution solution;
 			for(auto const& instance: m_instances) {
-				solution = instance->solveFPTAS(0.5);
+				solution = instance->solveFPTAS(epsilon);
 				averageTime += solution.getTime().count();
 				count ++;
 			}
@@ -530,22 +530,30 @@ class KnapsackCollection {
 			cout << solution.getN() << " " << count << " " << averageTime << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
-		void solveFPTASerr() {
+		void solveFPTASerr(double epsilon) {
 			int count = 0, n = 0;
 			double averageError = 0, maxError = 0, relError = 0;
+			double avgTimePD = 0, avgTimeFPTAS = 0;
 			KnapsackSolution pd, fptas;
 			for(auto const& instance: m_instances) {
 				pd = instance->solvePD();
-				fptas = instance->solveFPTAS(0.01);				
+				fptas = instance->solveFPTAS(epsilon);				
 				// rel error
 				relError = ((double)(pd.getPrice()-fptas.getPrice()))/(double)pd.getPrice();
 				if(relError > maxError) maxError = relError;
 				averageError += relError;
+
+				avgTimePD += pd.getTime().count();
+				avgTimeFPTAS += fptas.getTime().count();
+
 				count++;
 
 			}
 			averageError /= (double)count;
-			cout << pd.getN() << ' ' << count << ' ' << averageError << ' ' << maxError << endl;
+			avgTimePD /= (double)count;
+			avgTimeFPTAS /= (double)count;			
+
+			cout << pd.getN() << ' ' << count << ' ' << avgTimePD << ' ' << avgTimeFPTAS << ' '  << averageError << ' ' << maxError << endl;
 		}
 		/*---------------------------------------------------------------------------------*/
 	private:
@@ -571,11 +579,19 @@ int main ( int args, char ** argv ) {
 	else if ( opt == "PD" ) {
 		collection.solvePD();
 	}
-	else if ( opt == "FPTAS") {
-		collection.solveFPTAS();
+	else if ( opt == "FPTAS") {		
+		if (args<4){
+			cout << "Enter epsilon" << endl;
+			return 1;
+		}
+		collection.solveFPTAS(std::stod(argv[3]));
 	}
 	else if ( opt == "ERR") {
-		collection.solveFPTASerr();
+		if (args<4) {
+			cout << "Enter epsilon" << endl;
+			return 1;
+		}
+		collection.solveFPTASerr(std::stod(argv[3]));
 	}
 	else {
 

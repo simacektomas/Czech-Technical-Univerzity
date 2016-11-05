@@ -7,5 +7,5 @@ fi
 
 for file in $2/*
 do
-	./knapsack.vol2 $1 "$file"
+	./knapsack.vol2 $1 "$file" $3
 done
