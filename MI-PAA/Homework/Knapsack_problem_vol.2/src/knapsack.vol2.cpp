@@ -344,7 +344,7 @@ class KnapsackInstance {
                                 if(pmatrix[i][y] == pmatrix[i-1][y]) permutation[i] = 0;
                                 else {
                                         permutation[i] = 1;
-                                        y -= (m_items[i]->getPrice())/K;
+                                        y -= (int)((m_items[i]->getPrice())/K);
                                 }       
                         }
 
@@ -525,6 +525,7 @@ class KnapsackCollection {
 				solution = instance->solveFPTAS(epsilon);
 				averageTime += solution.getTime().count();
 				count ++;
+				cout << solution << endl;
 			}
 			averageTime /= (double) count;
 			cout << solution.getN() << " " << count << " " << averageTime << endl;

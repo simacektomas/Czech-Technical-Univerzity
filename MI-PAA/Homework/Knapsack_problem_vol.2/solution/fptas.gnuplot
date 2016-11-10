@@ -99,3 +99,59 @@ set xlabel "pocet predmetu"
 set ylabel "relativni chyba"
 set key top right
 plot "FPTAS_err_0.9.dat" using 1:5 title "prumerna relativni chyba", "FPTAS_err_0.9.dat" using 1:6 title "maximalni relativni chyba"
+
+set terminal png
+set output 'img/FPTAS_time.png'
+set title "FPTAS algoritmus - doba behu"
+set ylabel "cas vypoctu [s]"
+set xlabel "pocet predmetu"
+set xrange [0:45]
+set key top left
+set logscale y
+plot "FPTAS_err_1.dat" using 1:4 title "eps = 0.1",\
+     "FPTAS_err_2.dat" using 1:4 title "eps = 0.2",\
+     "FPTAS_err_3.dat" using 1:4 title "eps = 0.3",\
+     "FPTAS_err_4.dat" using 1:4 title "eps = 0.4",\
+     "FPTAS_err_5.dat" using 1:4 title "eps = 0.5",\
+     "FPTAS_err_6.dat" using 1:4 title "eps = 0.6",\
+     "FPTAS_err_7.dat" using 1:4 title "eps = 0.7",\
+     "FPTAS_err_8.dat" using 1:4 title "eps = 0.8",\
+     "FPTAS_err_9.dat" using 1:4 title "eps = 0.9"
+
+
+#together
+set terminal png
+set output 'img/FPTAS_avg_err.png'
+set title "FPTAS algoritmus - prumerna relativni chyba"
+set xlabel "pocet predmetu"
+set xrange [0:45]
+set ylabel "relativni chyba"
+set key top right
+set logscale y
+plot "FPTAS_err_1.dat" using 1:5 title "eps = 0.1",\
+     "FPTAS_err_2.dat" using 1:5 title "eps = 0.2",\
+     "FPTAS_err_3.dat" using 1:5 title "eps = 0.3",\
+     "FPTAS_err_4.dat" using 1:5 title "eps = 0.4",\
+     "FPTAS_err_5.dat" using 1:5 title "eps = 0.5",\
+     "FPTAS_err_6.dat" using 1:5 title "eps = 0.6",\
+     "FPTAS_err_7.dat" using 1:5 title "eps = 0.7",\
+     "FPTAS_err_8.dat" using 1:5 title "eps = 0.8",\
+     "FPTAS_err_9.dat" using 1:5 title "eps = 0.9"
+
+set terminal png                                                                                                                                                                                               
+set output 'img/FPTAS_max_err.png'                                                                                                                                                                             
+set title "FPTAS algoritmus - max relativni chyba"                                                                                                                                                        
+set xlabel "pocet predmetu"                                                                                                                                                                                    
+set xrange [0:45]                                                                                                                                                                                              
+set ylabel "relativni chyba"                                                                                                                                                                                   
+set key top right                                                                                                                                                                                              
+set logscale y                                                                                                                                                                                                 
+plot "FPTAS_err_1.dat" using 1:6 title "eps = 0.1",\
+     "FPTAS_err_2.dat" using 1:6 title "eps = 0.2",\
+     "FPTAS_err_3.dat" using 1:6 title "eps = 0.3",\
+     "FPTAS_err_4.dat" using 1:6 title "eps = 0.4",\
+     "FPTAS_err_5.dat" using 1:6 title "eps = 0.5",\
+     "FPTAS_err_6.dat" using 1:6 title "eps = 0.6",\
+     "FPTAS_err_7.dat" using 1:6 title "eps = 0.7",\
+     "FPTAS_err_8.dat" using 1:6 title "eps = 0.8",\
+     "FPTAS_err_9.dat" using 1:6 title "eps = 0.9"
