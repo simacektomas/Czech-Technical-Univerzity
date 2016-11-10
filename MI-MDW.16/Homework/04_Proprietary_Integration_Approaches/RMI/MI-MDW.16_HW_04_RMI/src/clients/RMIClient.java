@@ -7,7 +7,7 @@ import interfaces.CurrencyConverter;
 
 public class RMIClient {
 	public static void main(String[] args) throws Exception{
-        CurrencyConverter client = (CurrencyConverter)Naming.lookup("//localhost/Hello");
+        CurrencyConverter client = (CurrencyConverter)Naming.lookup("//localhost/Currency");
         // No need to Currency have to implemets Serializable because only double come from server.
         double amount = 200, result;
         // EUR to GPB
