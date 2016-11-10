@@ -42,7 +42,7 @@ public class RMIServer extends UnicastRemoteObject implements CurrencyConverter 
             LocateRegistry.createRegistry(1099);
  
             RMIServer server = new RMIServer();
-            Naming.rebind("//0.0.0.0/Hello", server);
+            Naming.rebind("//0.0.0.0/Currency", server);
  
             System.out.println("Server started...");
  
