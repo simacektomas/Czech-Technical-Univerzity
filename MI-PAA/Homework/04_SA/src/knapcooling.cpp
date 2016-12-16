@@ -214,7 +214,7 @@ State& Annealing::transform(State& state){
 /*--------------------------------------------------------------------*/
 int main (int argc, char * argv[]){
 	srand (time(NULL));
-	bool config[4] = [true, true, false, true];
+	bool config[4] = {true, true, false, true};
 	State* state = new KnapState(4, config);
 	State* state2 = new KnapState(6);
 

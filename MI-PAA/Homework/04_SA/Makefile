@@ -1,15 +1,21 @@
 CC=g++
 CFLAGS="-std=c++11"
 
-knapcooling: knapcooling.o
-	$(CC) -std=c++11 knapcooling.o -o knapcooling
+annealing: annealing.o main.o knapsack.o
+	$(CC) -std=c++11 main.o annealing.o knapsack.o -o annealing
 
-knapcooling.o: ./src/knapcooling.cpp
-	$(CC) -std=c++11 -c ./src/knapcooling.cpp 
+main.o: ./src/main.cpp
+	$(CC) -std=c++11 -c ./src/main.cpp
 
-run: knapcooling
-	./knapcooling
+annealing.o: ./src/annealing.cpp
+	$(CC) -std=c++11 -c ./src/annealing.cpp
+
+knapsack.o: ./src/knapsack.cpp
+	$(CC) -std=c++11 -c ./src/knapsack.cpp
+
+run: annealing
+	./annealing
 
 clean:
-	rm knapcooling knapcooling.o
+	rm annealing annealing.o main.o knapsack.o
 
