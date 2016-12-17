@@ -3,6 +3,11 @@
 
 using namespace std;
 /*--------------------------------------------------------------------*/
+/*State class*/
+/*--------------------------------------------------------------------*/
+State::~State()
+{}
+/*--------------------------------------------------------------------*/
 bool operator>(const State& left, const State& right){
         int result = left.compare(right);
         if (result <= 0) return false;
@@ -23,21 +28,27 @@ ostream& operator<<(ostream& os,const State& state){
 /*
  * Annealing configuration 
  */
-Annealing::Annealing(double T_s, double T_e, double cooling)
-:T_s(T_s), T_c(T_s), T_e(T_e), cooling(cooling)
+Annealing::Annealing(double T_s, double T_e, double cooling, int equilibrium)
+:T_s(T_s), T_c(T_s), T_e(T_e), cooling(cooling), m_equilibrium(equilibrium), m_ecount(0), m_eaccepted(0)
 {}
 /*--------------------------------------------------------------------*/
-State& Annealing::anneal(State& init){
+State* Annealing::anneal(State* init){
+	
+	State 	*cstate = init, *sbest = init, *nstate;
 
         while(!frozen()){
 
                 while(!equilibrium()){
-
+			nstate = transform(cstate);
+			m_ecount++;		
                 }
+		cool();
         }
 }
 /*--------------------------------------------------------------------*/
 bool Annealing::equilibrium(){
+	if(m_eaccepted > m_equilibrium || m_ecount > 2*m_equilibrium) return true;
+	return false;
 }
 /*--------------------------------------------------------------------*/
 bool Annealing::frozen(){
@@ -58,6 +69,6 @@ void Annealing::cool(){
  *
  *
  */
-State& Annealing::transform(State& state){
+State* Annealing::transform(State* state){
 }
 /*--------------------------------------------------------------------*/

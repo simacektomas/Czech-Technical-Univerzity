@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "annealing.h"
 
 using namespace std;
 /*-------------------------------------------------------------------------------------------------*/
@@ -28,6 +29,12 @@ class KnapsackInstance {
 		                KnapsackInstance(string instance);
         		        ~KnapsackInstance();
 
+			int	getSize() const;
+			int	getCapacity() const;
+		KnapsackItem**	getItems() const;
+		
+			void	solveAnnealing();
+
                 friend ostream& operator << (ostream& stream, const KnapsackInstance & instance);
 	private: 
 		int m_id;
@@ -40,10 +47,38 @@ class KnapsackCollection {
 	public:
 				KnapsackCollection(string filename);
 				~KnapsackCollection();
+
+			void	solveAnnealing();
+
 		friend ostream& operator<<(ostream& stream, const KnapsackCollection& collection);
 	private:
 		string 				m_filename;
 		string 				m_solfile;
 		vector<KnapsackInstance*> 	m_instances;
+};
+/*-------------------------------------------------------------------------------------------------*/
+/*
+ *
+ *
+ */
+class KnapState: public State {
+	public:
+				KnapState(bool* configuration, KnapsackInstance* instance);
+				KnapState(int price, int weight, bool* configuration, KnapsackInstance* instance);
+				~KnapState();
+		
+		virtual double 	criterium() const;
+		virtual bool 	solution() const;
+		virtual State*	adjecency() const;
+	private:
+		virtual int 	compare(const State& state) const;
+		virtual string 	print() const;
+
+		int			m_price;
+		int			m_weight;
+		bool* 			m_configuration;
+		KnapsackInstance*	m_instance;
+		
+		
 };
 /*-------------------------------------------------------------------------------------------------*/

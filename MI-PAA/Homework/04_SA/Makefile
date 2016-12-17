@@ -14,7 +14,7 @@ knapsack.o: ./src/knapsack.cpp
 	$(CC) -std=c++11 -c ./src/knapsack.cpp
 
 run: annealing
-	./annealing
+	./annealing data/inst/knap_10.inst.dat
 
 clean:
 	rm annealing annealing.o main.o knapsack.o

@@ -1,6 +1,6 @@
+#include <cstring>
 #include <sstream>
 #include <fstream>
-#include <string>
 #include "knapsack.h"
 
 using namespace std;
@@ -73,6 +73,40 @@ KnapsackInstance::~KnapsackInstance() {
 	delete [] m_items;
 }
 /*---------------------------------------------------------------------------------*/
+int KnapsackInstance::getSize() const {
+	return m_n;
+}
+/*---------------------------------------------------------------------------------*/
+int KnapsackInstance::getCapacity() const {
+	return m_capacity;
+}
+/*---------------------------------------------------------------------------------*/
+KnapsackItem** KnapsackInstance::getItems() const {
+	return m_items;
+}
+/*---------------------------------------------------------------------------------*/
+void KnapsackInstance::solveAnnealing() {
+	/*Get initial configuration*/
+	bool	solution = false;
+	bool	*iconfiguration = new bool[m_n];
+	State	*istate, *sstate;
+	while (!solution) {
+		for(int i = 0; i<m_n; i++) {
+			int value = rand() % 2;
+			if(value) iconfiguration[i] = true;
+			else iconfiguration[i] = false;
+		}
+		istate = new KnapState(iconfiguration, this);
+
+		if(istate->solution()) solution = true;
+	}
+	cout << "Initial ";
+	cout << *istate << endl;	
+	Annealing annealing(5,1,0.900,5);
+	sstate = annealing.anneal(istate);
+	delete istate;
+}
+/*---------------------------------------------------------------------------------*/
 ostream& operator << (ostream& stream, const KnapsackInstance & instance) {
 	stream << "Instance: [" << endl;
 	stream << "\tid: " << instance.m_id << endl;
@@ -106,6 +140,13 @@ KnapsackCollection::~KnapsackCollection() {
         }   
 }
 /*---------------------------------------------------------------------------------*/
+void KnapsackCollection::solveAnnealing() {
+/*	for(auto const& instance: m_instances) {
+		instance->solveAnnealing();
+	}*/
+	m_instances[0]->solveAnnealing();
+}
+/*---------------------------------------------------------------------------------*/
 ostream& operator<<(ostream& stream, const KnapsackCollection& collection) {
 	for(auto const& instance: collection.m_instances) {
 		stream << *instance << endl;
@@ -113,6 +154,99 @@ ostream& operator<<(ostream& stream, const KnapsackCollection& collection) {
 	return stream;
 }
 /*---------------------------------------------------------------------------------*/
+/*KnapState class*/
+/*---------------------------------------------------------------------------------*/
+KnapState::KnapState(bool* configuration, KnapsackInstance* instance) 
+:m_configuration(configuration), m_instance(instance) {
+	int price = 0, weight = 0;
+	KnapsackItem** items = m_instance->getItems();	
+
+	for(int i = 0; i < m_instance->getSize(); i++){
+		if(m_configuration[i]) {
+			price += items[i]->getPrice();
+			weight += items[i]->getWeight();
+		}
+	}
+	m_price = price;
+	m_weight = weight;
+}
+/*---------------------------------------------------------------------------------*/
+KnapState::KnapState(int price, int weight, bool* configuration, KnapsackInstance* instance) 
+:m_price(price), m_weight(weight), m_configuration(configuration), m_instance(instance) {}
+/*---------------------------------------------------------------------------------*/
+KnapState::~KnapState() {
+	delete [] m_configuration;
+}
+/*---------------------------------------------------------------------------------*/
+double KnapState::criterium() const {
+	return m_price;
+}
+/*---------------------------------------------------------------------------------*/
+bool KnapState::solution() const {
+	if(m_weight > m_instance->getCapacity()) return false;
+	return true;
+}
+/*---------------------------------------------------------------------------------*/
+/*
+ *
+ *
+ */
+State* KnapState::adjecency() const {
+	int 	nprice = m_price, nweight = m_weight;
+	int	soperator = rand() % (m_instance->getSize());
+	int	sadd = rand() % 2;
+	bool	sflag = false;
+	bool*	nconfiguration = new bool[m_instance->getSize()];
+	KnapsackItem** m_items = m_instance->getItems();
+	/*Copy configuration*/
+	for(int i = 0; i < m_instance->getSize(); i++)
+		if(m_configuration[i])nconfiguration[i] = true;
+		else nconfiguration[i] = false;
+
+	if(sadd) {
+		if(!nconfiguration[soperator]) sflag = true;
+		nconfiguration[soperator] = true;
+
+	}
+	else {
+		if(nconfiguration[soperator]) sflag = true;
+		nconfiguration[soperator] = false;
+	}
+
+	if(sflag) { /*we changed price and weight of state*/
+		if(sadd) {	/*we added the item = > change the price*/
+			nprice += m_items[soperator]->getPrice();
+			nweight+= m_items[soperator]->getWeight(); 			
+		} else {
+			nprice -= m_items[soperator]->getPrice();
+                        nweight-= m_items[soperator]->getWeight();
+		}
+	} 
+
+	return new KnapState(nprice, nweight, nconfiguration, m_instance);
+	
+}
+/*---------------------------------------------------------------------------------*/
+int KnapState::compare(const State& state) const {
+
+}
+/*---------------------------------------------------------------------------------*/
+string KnapState::print() const {
+	stringstream is;
+	is << "State: [" << endl;
+	is << "\tsize: " << m_instance->getSize() << endl;
+	is << "\tprice: " << m_price << endl;
+	is << "\tweight: " << m_weight << endl;
+	is << "\tcapacity: " << m_instance->getCapacity() << endl;
+	is << "\tconfigruration: [";
+	for(int i = 0; i < m_instance->getSize(); i++){
+		if(m_configuration[i]) is << "1 ";
+		else is << "0 ";
+	}
+	is << "]" << endl << "]";
+
+	return is.str();
+}
 /*---------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------*/

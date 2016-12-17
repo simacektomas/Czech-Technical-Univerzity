@@ -1,11 +1,11 @@
 #include "knapsack.h"
-#include "annealing.h"
 
 using namespace std;
 
 int main(int argc, char* argv[]){
+	srand(time(NULL));
 	KnapsackCollection collection(argv[1]);	
-	cout << collection << endl;	
+	collection.solveAnnealing();
 
 	return 0;
 }
