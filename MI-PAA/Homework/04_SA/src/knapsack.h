@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
 #include "annealing.h"
 
 using namespace std;
@@ -32,14 +33,16 @@ class KnapsackInstance {
 			int	getSize() const;
 			int	getCapacity() const;
 		KnapsackItem**	getItems() const;
+			double	getTime() const;
 		
-			void	solveAnnealing();
+			State*	solveAnnealing(double tstart, double tend, double cool, int equilibrium);
 
                 friend ostream& operator << (ostream& stream, const KnapsackInstance & instance);
 	private: 
 		int m_id;
                 int m_n;
                 int m_capacity;
+		std::chrono::duration<double> m_time;
                 KnapsackItem ** m_items;
 };
 /*-------------------------------------------------------------------------------------------------*/
@@ -48,7 +51,7 @@ class KnapsackCollection {
 				KnapsackCollection(string filename);
 				~KnapsackCollection();
 
-			void	solveAnnealing();
+			void	solveAnnealing(double tstart, double tend, double cool, int equilibrium);
 
 		friend ostream& operator<<(ostream& stream, const KnapsackCollection& collection);
 	private:

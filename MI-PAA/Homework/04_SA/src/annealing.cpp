@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "annealing.h"
 
 using namespace std;
@@ -37,14 +38,17 @@ State* Annealing::anneal(State* init){
 	State 	*cstate = init, *sbest = init, *nstate;
 
         while(!frozen()){
-
                 while(!equilibrium()){
 			nstate = transform(cstate);
-			m_ecount++;		
+			if(*nstate > *sbest) sbest = nstate;
+			cstate = nstate;
                 }
+		m_ecount = 0;
+		m_eaccepted = 0;
 		cool();
         }
-}
+	return sbest;
+ }
 /*--------------------------------------------------------------------*/
 bool Annealing::equilibrium(){
 	if(m_eaccepted > m_equilibrium || m_ecount > 2*m_equilibrium) return true;
@@ -70,5 +74,27 @@ void Annealing::cool(){
  *
  */
 State* Annealing::transform(State* state){
+
+	State *nstate = state->adjecency();
+
+	if(*nstate > *state) {
+		m_ecount++;
+		m_eaccepted++;
+		return nstate;
+	}
+
+	int delta = nstate->criterium()-state->criterium();	
+	double x = ((double) rand() / (RAND_MAX));
+	double pst = exp((double)delta/(double)T_c);
+	if(x < pst) {
+		m_ecount++;
+		m_eaccepted++;
+		return nstate;
+	}
+	else {
+		m_ecount++;
+		return state;
+	}	
+
 }
 /*--------------------------------------------------------------------*/
