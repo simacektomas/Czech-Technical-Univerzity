@@ -11,9 +11,7 @@ SatInstance::SatInstance(string file)
 :valid(true) {
 	cout << file << endl;	
 
-	valid = parseDIMACS(file);
-	if ( valid ) cout << "VALID" << endl;
-	else cout << "INVALID" << endl;
+	valid = parseDIMACS(file);	
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 SatInstance::~SatInstance() {	
@@ -204,15 +202,40 @@ bool SatState::solution() const {
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 double SatState::criterium() const {
-	if(m_solution) {
-		return m_criterium;			
-	} 
-	else {
-		int maxcrit = 0;
-		for(int weight: m_instance->getWeights())
-			maxcrit += weight;
-		return (m_criterium - maxcrit);
-	} 
+
+	int BONUS = 1;
+	double RATIO = 0.9;
+	double WEIGHT_RATIO = 0;
+	double CLAUSULES_RATIO = 0;
+	int CLAUSULE_TRUE = 0;
+	int CLAUSULE_SUM = m_instance->cCount();
+	int WEIGHT_SUM = 0;
+	int WEIGHT_STATE = 0;
+
+	int i = 0;
+
+	vector<int> weights = m_instance->getWeights();
+	for(int weight: weights)
+		WEIGHT_SUM += weight;
+
+	for(bool variable: m_configuration) {
+		if(variable) 
+			WEIGHT_STATE += weights[i];
+		i++;
+	}
+
+	for(bool clausule: m_clausulemap)
+		if(clausule)
+			CLAUSULE_TRUE += 1;
+
+	WEIGHT_RATIO = (double)WEIGHT_STATE/(double)WEIGHT_SUM;
+	CLAUSULES_RATIO = (double)CLAUSULE_TRUE/(double)CLAUSULE_SUM;	
+
+	if(m_solution)
+		return ((WEIGHT_RATIO)*(1 - RATIO)) + ((CLAUSULES_RATIO)*(RATIO)) + BONUS;
+	else
+		return ((WEIGHT_RATIO)*(1 - RATIO)) + ((CLAUSULES_RATIO)*(RATIO));
+
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 State* SatState::adjecency() const {
@@ -223,8 +246,7 @@ State* SatState::adjecency() const {
 	if(nconfiguration[soperator]) nconfiguration[soperator] = false;
 	else nconfiguration[soperator] = true;*/
 
-	if(!m_solution){	
-		cout << "NOT SOLUTION" << endl;
+	if(!m_solution){			
 		const vector<vector<int>>& formule = m_instance->getFormule();
 		int soperator = rand() % (m_nclausule.size());
 
@@ -236,8 +258,7 @@ State* SatState::adjecency() const {
 
 		if(nconfiguration[abs(var)]) nconfiguration[abs(var)] = false;
 		else nconfiguration[abs(var)] = true;
-	} else {
-		cout << "SOLUTION" << endl;
+	} else {		
 		int soperator = rand() % (m_instance->vCount());
 
 		if(nconfiguration[soperator]) nconfiguration[soperator] = false;
@@ -247,8 +268,7 @@ State* SatState::adjecency() const {
 	
 
 
-	State * state = new SatState(nconfiguration, m_instance);
-	cout << *state << endl;
+	State * state = new SatState(nconfiguration, m_instance);	
 	return state ;
 
 }
@@ -264,6 +284,14 @@ string SatState::print() const {
 	ss << "State:[" << endl;
 	ss << "\tcriterium: " << this->criterium() << endl;
 	ss << "\tsolution: " << this->solution() << endl;
+	int weights = 0;
+	int i = 0;
+	for(int weight: m_instance->getWeights()) {
+		if(m_configuration[i])
+			weights += weight;
+		i++;
+	}
+	ss << "\tweight:" << weights << endl;
 	ss << "\tconfiguration: [" ;
 	if(m_configuration[0]) ss << "1";
 	else ss << "0";

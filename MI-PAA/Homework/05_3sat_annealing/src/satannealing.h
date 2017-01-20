@@ -43,7 +43,7 @@ class SatState: public State {
 		virtual int			compare(const State& state) const;
 		virtual string		print() const;
 
-				int 		clausulesFulfilled();
+			int 			clausulesFulfilled();
 
 			int 			m_criterium;			
 
