@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <iostream>
+#include <fstream>
 #include "annealing.h"
 
 using namespace std;
@@ -37,16 +39,28 @@ State* Annealing::anneal(State* init){
 	
 	State 	*cstate = init, *sbest = init, *nstate;
 
-        while(!frozen()){
-                while(!equilibrium()){
-					nstate = transform(cstate);
-					if(*nstate > *sbest) sbest = nstate;
-					cstate = nstate;
-                }                
-				m_ecount = 0;
-				m_eaccepted = 0;				
-				cool();
-        }    
+	ofstream myfile;
+  	myfile.open ("output.txt");
+  	
+
+
+	int i = 0;
+
+    while(!frozen()){
+            while(!equilibrium()){
+				nstate = transform(cstate);
+				if(*nstate > *sbest) sbest = nstate;
+				myfile << i << ' ' << nstate->criterium() << endl;
+				//cout << i << ' ' << nstate->criterium() << endl;
+				//cout << *nstate << endl;
+				cstate = nstate;
+				i++;
+            }                
+			m_ecount = 0;
+			m_eaccepted = 0;				
+			cool();
+    }    
+    myfile.close();
 	return sbest;
  }
 /*--------------------------------------------------------------------*/
@@ -77,17 +91,32 @@ State* Annealing::transform(State* state){
 
 	State *nstate = state->adjecency();
 
-	if(*nstate > *state) {
+	
+
+	double STATE_CRITERIUM = (double)state->criterium();
+	double NSTATE_CRITERIUM = (double)nstate->criterium();
+	double ADAPTATION = ((double)T_s + (double)T_e)/2;
+	//cout << "TEST: "<< ADAPTATION  << ' ' << STATE_CRITERIUM << " " << NSTATE_CRITERIUM << endl;
+
+	double delta =(NSTATE_CRITERIUM - STATE_CRITERIUM)*ADAPTATION;	
+
+	if(delta > 0 ) {
 		m_ecount++;
-		m_eaccepted++;		
+		m_eaccepted++;
 		return nstate;
 	}
-
-	double delta = nstate->criterium()-state->criterium();	
+		
 	double x = ((double) rand() / (RAND_MAX));
 	double exponent = (double)delta/(double)T_c;	
 	double pst = exp(exponent);		
-	if(x < pst) {
+
+	cout << "Delta: " << delta << endl;
+	cout << "Temperature: " << T_c << endl;
+	cout << "Exponent: " << exponent << endl;
+	cout << "PST: " << pst << endl;
+
+
+	if(delta > 0 || x < pst) {
 		m_ecount++;
 		m_eaccepted++;
 		return nstate;
@@ -99,3 +128,4 @@ State* Annealing::transform(State* state){
 
 }
 /*--------------------------------------------------------------------*/
+

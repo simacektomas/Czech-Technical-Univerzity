@@ -12,6 +12,7 @@ class SatInstance {
 			int 				vCount() const;
 			int 				cCount() const;
 			int 				getMinWeight() const;
+			int 				getMaxWeight() const;
 			int 				getSumWeights() const;
 			vector<int>			getWeights() const;
 			vector<vector<int>>	getFormule() const;
@@ -27,6 +28,7 @@ class SatInstance {
 
 			vector<int>			weights;
 			int 				m_minweight;
+			int 				m_maxweight;
 			int 				m_sumweights;
 
 			vector<vector<int>>	formule;

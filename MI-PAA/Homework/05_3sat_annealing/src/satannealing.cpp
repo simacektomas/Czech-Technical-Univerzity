@@ -14,11 +14,15 @@ SatInstance::SatInstance(string file)
 
 	valid = parseDIMACS(file);	
 
+	cout << valid << endl;
+
 	m_minweight = weights[0];
+	m_maxweight = weights[0];
 
 	for(int weight: weights){
 		m_sumweights+= weight;
 		if(weight < m_minweight) m_minweight = weight;
+		if(weight > m_maxweight) m_maxweight = weight;
 	}
 }
 /*----------------------------------------------------------------------------------------------------------------*/
@@ -38,7 +42,8 @@ State* SatInstance::solveAnnealing(double tstart, double tend, double cool, int 
 	auto start = std::chrono::high_resolution_clock::now(); 		
 	cout << T_START << ' ' << vcount << endl;
 
-	Annealing annealing(T_START, 0.1*T_START, 0.99, 6*vcount);
+	//Annealing annealing(T_START, 0.1*T_START, 0.99, 6*vcount);
+	Annealing annealing(tstart, tend, cool, equilibrium);
 	State * result = annealing.anneal( new SatState(iconfiguration, this));
 
 	auto end = std::chrono::high_resolution_clock::now();
@@ -71,6 +76,10 @@ int SatInstance::getSumWeights() const {
 /*----------------------------------------------------------------------------------------------------------------*/
 int SatInstance::getMinWeight() const {
 	return m_minweight;
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+int SatInstance::getMaxWeight() const {
+	return m_maxweight;
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 bool SatInstance::parseDIMACS(string file) {
@@ -233,25 +242,28 @@ bool SatState::solution() const {
 double SatState::criterium() const {
 
 	vector<int> weights = m_instance->getWeights();
-
+	double RATIO = 0.98;
 	int CLAUSULE_SUM = m_instance->cCount();
 	int CLAUSULE_TRUE = CLAUSULE_SUM - m_nclausule.size();
+	double CLAUSULE_RATIO = (double)CLAUSULE_TRUE/(double)CLAUSULE_SUM; 
 	int WEIGHT_SUM = m_instance->getSumWeights();
 	int WEIGHT_STATE = 0;
-	int WEIGHT_MIN = m_instance->getMinWeight();
-
 	int i = 0;
-
 	for(bool variable: m_configuration) {
 		if(variable) 
 			WEIGHT_STATE += weights[i];
 		i++;
 	}
+	int WEIGHT_MIN = m_instance->getMinWeight();
+	int WEIGHT_MAX = m_instance->getMaxWeight();
+	double WEIGHT_RATIO = (double)WEIGHT_STATE/(double)WEIGHT_SUM;
+
+	return (CLAUSULE_RATIO)*(RATIO)+(WEIGHT_RATIO)*(1-RATIO);
 		
-	if(m_solution)
-		return WEIGHT_STATE;
+	/*if(m_solution)
+		return WEIGHT_STATE + CLAUSULE_SUM - WEIGHT_MIN;
 	else
-		return CLAUSULE_TRUE*WEIGHT_MIN/WEIGHT_SUM;
+		return CLAUSULE_TRUE;*/
 
 }
 /*----------------------------------------------------------------------------------------------------------------*/
