@@ -108,13 +108,7 @@ State* Annealing::transform(State* state){
 		
 	double x = ((double) rand() / (RAND_MAX));
 	double exponent = (double)delta/(double)T_c;	
-	double pst = exp(exponent);		
-
-	cout << "Delta: " << delta << endl;
-	cout << "Temperature: " << T_c << endl;
-	cout << "Exponent: " << exponent << endl;
-	cout << "PST: " << pst << endl;
-
+	double pst = exp(exponent);			
 
 	if(delta > 0 || x < pst) {
 		m_ecount++;
