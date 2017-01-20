@@ -11,6 +11,8 @@ class SatInstance {
 								~SatInstance();					
 			int 				vCount() const;
 			int 				cCount() const;
+			int 				getMinWeight() const;
+			int 				getSumWeights() const;
 			vector<int>			getWeights() const;
 			vector<vector<int>>	getFormule() const;
 					
@@ -24,6 +26,9 @@ class SatInstance {
 			int					ccount;	
 
 			vector<int>			weights;
+			int 				m_minweight;
+			int 				m_sumweights;
+
 			vector<vector<int>>	formule;
 
 			string 				type;
@@ -45,9 +50,11 @@ class SatState: public State {
 
 			int 			clausulesFulfilled();
 
-			int 			m_criterium;			
+			int 			m_criterium;
+			int 			m_weight;						
 
 			bool			m_solution;
+
 
 			vector<bool>	m_configuration;
 			vector<bool>	m_clausulemap;

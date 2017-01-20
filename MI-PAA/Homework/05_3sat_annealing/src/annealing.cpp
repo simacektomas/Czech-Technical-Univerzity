@@ -42,11 +42,11 @@ State* Annealing::anneal(State* init){
 					nstate = transform(cstate);
 					if(*nstate > *sbest) sbest = nstate;
 					cstate = nstate;
-                }
+                }                
 				m_ecount = 0;
-				m_eaccepted = 0;
+				m_eaccepted = 0;				
 				cool();
-        }
+        }    
 	return sbest;
  }
 /*--------------------------------------------------------------------*/
@@ -79,13 +79,14 @@ State* Annealing::transform(State* state){
 
 	if(*nstate > *state) {
 		m_ecount++;
-		m_eaccepted++;
+		m_eaccepted++;		
 		return nstate;
 	}
 
-	int delta = nstate->criterium()-state->criterium();	
+	double delta = nstate->criterium()-state->criterium();	
 	double x = ((double) rand() / (RAND_MAX));
-	double pst = exp((double)delta/(double)T_c);
+	double exponent = (double)delta/(double)T_c;	
+	double pst = exp(exponent);		
 	if(x < pst) {
 		m_ecount++;
 		m_eaccepted++;

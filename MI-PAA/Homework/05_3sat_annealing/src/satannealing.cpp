@@ -3,15 +3,23 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <chrono>
 
 using namespace std;
 /*SATINSTANCE*/
 /*----------------------------------------------------------------------------------------------------------------*/
 SatInstance::SatInstance(string file)
-:valid(true) {
+:valid(true), m_sumweights(0) {
 	cout << file << endl;	
 
 	valid = parseDIMACS(file);	
+
+	m_minweight = weights[0];
+
+	for(int weight: weights){
+		m_sumweights+= weight;
+		if(weight < m_minweight) m_minweight = weight;
+	}
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 SatInstance::~SatInstance() {	
@@ -23,9 +31,22 @@ State* SatInstance::solveAnnealing(double tstart, double tend, double cool, int 
 	for(int i = 0; i < vcount; i++)
 		iconfiguration.push_back(false);
 
-	Annealing annealing(tstart, tend, cool, equilibrium);
+	int T_START = 0;
+	for(int weight: weights)
+		T_START += weight;
+
+	auto start = std::chrono::high_resolution_clock::now(); 		
+	cout << T_START << ' ' << vcount << endl;
+
+	Annealing annealing(T_START, 0.1*T_START, 0.99, 6*vcount);
+	State * result = annealing.anneal( new SatState(iconfiguration, this));
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> m_time = end-start;
+
+	cout << m_time.count() << endl; 
 	
-	return annealing.anneal( new SatState(iconfiguration, this));
+	return result;
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 int SatInstance::vCount() const {
@@ -42,6 +63,14 @@ vector<int> SatInstance::getWeights() const {
 /*----------------------------------------------------------------------------------------------------------------*/
 vector<vector<int>> SatInstance::getFormule() const {
 	return formule;
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+int SatInstance::getSumWeights() const {
+	return m_sumweights;
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+int SatInstance::getMinWeight() const {
+	return m_minweight;
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 bool SatInstance::parseDIMACS(string file) {
@@ -203,38 +232,26 @@ bool SatState::solution() const {
 /*----------------------------------------------------------------------------------------------------------------*/
 double SatState::criterium() const {
 
-	int BONUS = 1;
-	double RATIO = 0.9;
-	double WEIGHT_RATIO = 0;
-	double CLAUSULES_RATIO = 0;
-	int CLAUSULE_TRUE = 0;
+	vector<int> weights = m_instance->getWeights();
+
 	int CLAUSULE_SUM = m_instance->cCount();
-	int WEIGHT_SUM = 0;
+	int CLAUSULE_TRUE = CLAUSULE_SUM - m_nclausule.size();
+	int WEIGHT_SUM = m_instance->getSumWeights();
 	int WEIGHT_STATE = 0;
+	int WEIGHT_MIN = m_instance->getMinWeight();
 
 	int i = 0;
-
-	vector<int> weights = m_instance->getWeights();
-	for(int weight: weights)
-		WEIGHT_SUM += weight;
 
 	for(bool variable: m_configuration) {
 		if(variable) 
 			WEIGHT_STATE += weights[i];
 		i++;
 	}
-
-	for(bool clausule: m_clausulemap)
-		if(clausule)
-			CLAUSULE_TRUE += 1;
-
-	WEIGHT_RATIO = (double)WEIGHT_STATE/(double)WEIGHT_SUM;
-	CLAUSULES_RATIO = (double)CLAUSULE_TRUE/(double)CLAUSULE_SUM;	
-
+		
 	if(m_solution)
-		return ((WEIGHT_RATIO)*(1 - RATIO)) + ((CLAUSULES_RATIO)*(RATIO)) + BONUS;
+		return WEIGHT_STATE;
 	else
-		return ((WEIGHT_RATIO)*(1 - RATIO)) + ((CLAUSULES_RATIO)*(RATIO));
+		return CLAUSULE_TRUE*WEIGHT_MIN/WEIGHT_SUM;
 
 }
 /*----------------------------------------------------------------------------------------------------------------*/
@@ -248,16 +265,19 @@ State* SatState::adjecency() const {
 
 	if(!m_solution){			
 		const vector<vector<int>>& formule = m_instance->getFormule();
-		int soperator = rand() % (m_nclausule.size());
+		
+		int soperator = rand() % (m_nclausule.size()); 
 
-		const vector<int> & clausule = formule[soperator];
+		int nclausule = m_nclausule[soperator];
+
+		const vector<int> & clausule = formule[nclausule];
 
 		int varflip = rand() % (clausule.size());
 
-		int var = clausule[varflip];
+		int var = clausule[varflip];				
 
-		if(nconfiguration[abs(var)]) nconfiguration[abs(var)] = false;
-		else nconfiguration[abs(var)] = true;
+		if(nconfiguration[abs(var)-1]) nconfiguration[abs(var)-1] = false;
+		else nconfiguration[abs(var)-1] = true;
 	} else {		
 		int soperator = rand() % (m_instance->vCount());
 
