@@ -34,6 +34,7 @@ class SatInstance {
 			vector<vector<int>>	formule;
 
 			string 				type;
+			string  			m_source;
 			
 			bool				valid;
 };
@@ -45,6 +46,8 @@ class SatState: public State {
 		virtual bool		solution() const;
 		virtual double		criterium() const;
 		virtual State*		adjecency() const;
+				int 		getUnfulfiled() const;
+				int 		getWeight() const;
 
 	private:
 		virtual int			compare(const State& state) const;

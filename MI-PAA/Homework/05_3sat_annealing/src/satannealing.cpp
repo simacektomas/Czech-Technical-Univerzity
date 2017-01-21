@@ -9,12 +9,10 @@ using namespace std;
 /*SATINSTANCE*/
 /*----------------------------------------------------------------------------------------------------------------*/
 SatInstance::SatInstance(string file)
-:valid(true), m_sumweights(0) {
+:valid(true), m_sumweights(0), m_source(file) {
 	cout << file << endl;	
 
-	valid = parseDIMACS(file);	
-
-	cout << valid << endl;
+	valid = parseDIMACS(file);		
 
 	m_minweight = weights[0];
 	m_maxweight = weights[0];
@@ -39,8 +37,7 @@ State* SatInstance::solveAnnealing(double tstart, double tend, double cool, int 
 	for(int weight: weights)
 		T_START += weight;
 
-	auto start = std::chrono::high_resolution_clock::now(); 		
-	cout << T_START << ' ' << vcount << endl;
+	auto start = std::chrono::high_resolution_clock::now(); 			
 
 	//Annealing annealing(T_START, 0.1*T_START, 0.99, 6*vcount);
 	Annealing annealing(tstart, tend, cool, equilibrium);
@@ -242,7 +239,7 @@ bool SatState::solution() const {
 double SatState::criterium() const {
 
 	vector<int> weights = m_instance->getWeights();
-	double RATIO = 0.98;
+	double RATIO = 0.99;
 	int CLAUSULE_SUM = m_instance->cCount();
 	int CLAUSULE_TRUE = CLAUSULE_SUM - m_nclausule.size();
 	double CLAUSULE_RATIO = (double)CLAUSULE_TRUE/(double)CLAUSULE_SUM; 
@@ -270,12 +267,12 @@ double SatState::criterium() const {
 State* SatState::adjecency() const {
 	vector<bool> nconfiguration(m_configuration);
 
-	/*int soperator = rand() % (m_instance->vCount());
+	int soperator = rand() % (m_instance->vCount());
 
 	if(nconfiguration[soperator]) nconfiguration[soperator] = false;
-	else nconfiguration[soperator] = true;*/
+	else nconfiguration[soperator] = true;
 
-	if(!m_solution){			
+	/*if(!m_solution){			
 		const vector<vector<int>>& formule = m_instance->getFormule();
 		
 		int soperator = rand() % (m_nclausule.size()); 
@@ -295,7 +292,7 @@ State* SatState::adjecency() const {
 
 		if(nconfiguration[soperator]) nconfiguration[soperator] = false;
 		else nconfiguration[soperator] = true;
-	}
+	}*/
 
 	
 
@@ -309,6 +306,14 @@ int SatState::compare(const State& state) const {
 	if(this->criterium() >  state.criterium()) return  1;
 	if(this->criterium() == state.criterium()) return  0;
 	if(this->criterium() <  state.criterium()) return -1;
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+int SatState::getUnfulfiled() const {
+	return (int)m_nclausule.size();
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+int SatState::getWeight() const {
+	return m_criterium;
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 string SatState::print() const {

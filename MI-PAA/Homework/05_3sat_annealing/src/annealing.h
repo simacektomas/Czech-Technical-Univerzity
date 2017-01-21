@@ -70,6 +70,6 @@ class Annealing {
                 double  cooling;                        //how fast we are cooling T = T*cooling
 		int	m_equilibrium;			//equilibrium parameter
 		int	m_ecount;			//equilibrium cycles
-		int	m_eaccepted;			//equilibrium accepted states
+		int	m_eaccepted;			//equilibrium accepted states                
 };
 /*-------------------------------------------------------------------------------------------------*/

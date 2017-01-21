@@ -49,13 +49,11 @@ State* Annealing::anneal(State* init){
     while(!frozen()){
             while(!equilibrium()){
 				nstate = transform(cstate);
-				if(*nstate > *sbest) sbest = nstate;
-				myfile << i << ' ' << nstate->criterium() << endl;
-				//cout << i << ' ' << nstate->criterium() << endl;
-				//cout << *nstate << endl;
+				if(*nstate > *sbest) sbest = nstate;							
 				cstate = nstate;
 				i++;
-            }                
+            }   
+            myfile << i << ' ' << nstate->criterium() << ' ' << T_c << endl;             
 			m_ecount = 0;
 			m_eaccepted = 0;				
 			cool();
@@ -95,9 +93,7 @@ State* Annealing::transform(State* state){
 
 	double STATE_CRITERIUM = (double)state->criterium();
 	double NSTATE_CRITERIUM = (double)nstate->criterium();
-	double ADAPTATION = ((double)T_s + (double)T_e)/2;
-	//cout << "TEST: "<< ADAPTATION  << ' ' << STATE_CRITERIUM << " " << NSTATE_CRITERIUM << endl;
-
+	double ADAPTATION = ((double)T_s + (double)T_e)/2;	
 	double delta =(NSTATE_CRITERIUM - STATE_CRITERIUM)*ADAPTATION;	
 
 	if(delta > 0 ) {
