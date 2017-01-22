@@ -88,13 +88,11 @@ void Annealing::cool(){
 State* Annealing::transform(State* state){
 
 	State *nstate = state->adjecency();
-
 	
-
 	double STATE_CRITERIUM = (double)state->criterium();
 	double NSTATE_CRITERIUM = (double)nstate->criterium();
 	double ADAPTATION = ((double)T_s + (double)T_e)/2;	
-	double delta =(NSTATE_CRITERIUM - STATE_CRITERIUM)*ADAPTATION;	
+	double delta =(NSTATE_CRITERIUM - STATE_CRITERIUM);//*ADAPTATION;	
 
 	if(delta > 0 ) {
 		m_ecount++;

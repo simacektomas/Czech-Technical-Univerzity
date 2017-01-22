@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include "annealing.h"
+#include <chrono>
 
 using namespace std;
 /*----------------------------------------------------------------------------------------------------------------*/
@@ -16,6 +17,7 @@ class SatInstance {
 			int 				getSumWeights() const;
 			vector<int>			getWeights() const;
 			vector<vector<int>>	getFormule() const;
+			double				getTime() const;
 					
 			State * 			solveAnnealing(double tstart, double tend, double cool, int equilibrium);
 
@@ -35,6 +37,8 @@ class SatInstance {
 
 			string 				type;
 			string  			m_source;
+
+			std::chrono::duration<double> 	m_time;
 			
 			bool				valid;
 };

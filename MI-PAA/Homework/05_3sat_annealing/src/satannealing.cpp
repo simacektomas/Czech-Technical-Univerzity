@@ -10,7 +10,7 @@ using namespace std;
 /*----------------------------------------------------------------------------------------------------------------*/
 SatInstance::SatInstance(string file)
 :valid(true), m_sumweights(0), m_source(file) {
-	cout << file << endl;	
+	//cout << file << endl;	
 
 	valid = parseDIMACS(file);		
 
@@ -28,6 +28,8 @@ SatInstance::~SatInstance() {
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 State* SatInstance::solveAnnealing(double tstart, double tend, double cool, int equilibrium) {
+
+	int ELEN = 1*vcount;
 	vector<bool> iconfiguration;
 
 	for(int i = 0; i < vcount; i++)
@@ -40,13 +42,12 @@ State* SatInstance::solveAnnealing(double tstart, double tend, double cool, int 
 	auto start = std::chrono::high_resolution_clock::now(); 			
 
 	//Annealing annealing(T_START, 0.1*T_START, 0.99, 6*vcount);
-	Annealing annealing(tstart, tend, cool, equilibrium);
+	Annealing annealing(tstart, tend, cool, ELEN);
 	State * result = annealing.anneal( new SatState(iconfiguration, this));
 
 	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> m_time = end-start;
-
-	cout << m_time.count() << endl; 
+	m_time = end-start;
+	
 	
 	return result;
 }
@@ -73,6 +74,10 @@ int SatInstance::getSumWeights() const {
 /*----------------------------------------------------------------------------------------------------------------*/
 int SatInstance::getMinWeight() const {
 	return m_minweight;
+}
+/*----------------------------------------------------------------------------------------------------------------*/
+double SatInstance::getTime() const {
+	return m_time.count();
 }
 /*----------------------------------------------------------------------------------------------------------------*/
 int SatInstance::getMaxWeight() const {
@@ -269,10 +274,10 @@ State* SatState::adjecency() const {
 
 	int soperator = rand() % (m_instance->vCount());
 
-	if(nconfiguration[soperator]) nconfiguration[soperator] = false;
-	else nconfiguration[soperator] = true;
+	/*if(nconfiguration[soperator]) nconfiguration[soperator] = false;
+	else nconfiguration[soperator] = true;*/
 
-	/*if(!m_solution){			
+	if(!m_solution){			
 		const vector<vector<int>>& formule = m_instance->getFormule();
 		
 		int soperator = rand() % (m_nclausule.size()); 
@@ -292,7 +297,7 @@ State* SatState::adjecency() const {
 
 		if(nconfiguration[soperator]) nconfiguration[soperator] = false;
 		else nconfiguration[soperator] = true;
-	}*/
+	}
 
 	
 
